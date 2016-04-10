@@ -7,9 +7,7 @@
 # Date:   2016/3/13
 # ====================================
 import wx
-import wx.grid
 import wx.lib.buttons as buttons
-import wx.richtext
 from ui import *
 
 
@@ -21,12 +19,14 @@ def loadIcon(icon, w, h):
 
 class Frame(wx.Frame):
     def __init__(self, title):
-        super(Frame, self).__init__(None, -1, title, size=(800, 600))
+        super(Frame, self).__init__(None, -1, title, size=(1024, 768))
         self.SetMinSize((800, 600))
         self.keymap = {'a': 'ACTION', 'c': 'CONT', 'd': 'DATA', 'e': 'EDU', 'g': 'GEND',
                        'l': 'LOC', 'm': 'MISC', 'n': 'NAME', 'o': 'ORG', 'p': 'PRO',
                        'r': 'RACE', 't': 'TITLE', 'u': 'UNIV'}
+        self.filepath = ''
         self.initUI()
+        self.settingdlg = SettingDlg(self, 'Settings')
         self.Center()
         self.Show()
 
@@ -35,19 +35,24 @@ class Frame(wx.Frame):
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         lbox = wx.BoxSizer(wx.VERTICAL)
         rbox = wx.BoxSizer(wx.VERTICAL)
-        fbox = wx.BoxSizer(wx.HORIZONTAL)
-        self.filename = wx.StaticText(self, -1, 'File: ')
-        fbox.Add(self.filename, 1, wx.ALL | wx.ALIGN_CENTRE, border=3)
-        open_btn = wx.Button(self, wx.ID_OPEN)
-        save_btn = wx.Button(self, wx.ID_SAVEAS)
-        fbox.Add(open_btn, 0, wx.LEFT | wx.ALIGN_CENTER, border=3)
-        fbox.Add(save_btn, 0, wx.ALL | wx.ALIGN_CENTER, border=3)
-        lbox.Add(fbox, 0, wx.EXPAND, 3)
+        toolbar = wx.ToolBar(self, style=wx.NO_BORDER | wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
+        open_tool = toolbar.AddSimpleTool(0, wx.Bitmap('icons/load.ico'), "Open a file from local...")
+        save_tool = toolbar.AddSimpleTool(1, wx.Bitmap('icons/saveas.ico'), "Save File")
+        saveas_tool = toolbar.AddSimpleTool(2, wx.Bitmap('icons/export.ico'), "Save As File...")
+        setting_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/setting.ico'), "Preferences...")
+        # undo_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/undo.ico'), "Undo")
+        # redo_tool = toolbar.AddSimpleTool(4, wx.Bitmap('icons/redo.ico'), "Save As File...")
         self.editor = MyEditor(self, self.keymap)
+        toolbar.Bind(wx.EVT_TOOL, self.onOpen, open_tool)
+        toolbar.Bind(wx.EVT_TOOL, self.onSave, save_tool)
+        toolbar.Bind(wx.EVT_TOOL, self.onExport, saveas_tool)
+        toolbar.Bind(wx.EVT_TOOL, self.onSetting, setting_tool)
+        # toolbar.Bind(wx.EVT_TOOL, lambda evt: self.editor.Undo(), undo_tool)
+        # toolbar.Bind(wx.EVT_TOOL, lambda evt: self.editor.Redo(), redo_tool)
+        toolbar.Realize()
+        lbox.Add(toolbar, 0, wx.EXPAND | wx.ALL, 3)
         lbox.Add(self.editor, 1, flag=wx.EXPAND | wx.ALL, border=3)
-        self.Bind(wx.EVT_BUTTON, self.onOpen, open_btn)
-        self.Bind(wx.EVT_BUTTON, self.onExport, save_btn)
-        #self.Bind(wx.EVT_CLOSE, self.onClose)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
         hbox.Add(lbox, 1, flag=wx.EXPAND | wx.ALL, border=3)
         rbox.Add(wx.StaticText(self, -1, 'Labels Shortcuts Map'), 0, wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, 8)
         self.grid = Grid(self, self.keymap)
@@ -63,25 +68,43 @@ class Frame(wx.Frame):
         hbox.Add(rbox, 0, flag=wx.EXPAND | wx.ALL, border=3)
         self.SetSizer(hbox)
 
+
     def onOpen(self, evt):
-        filedlg = wx.FileDialog(self, wildcard="Text files (*.txt)|*.txt|All files (*.*)|*.*")
+        if self.editor.IsModified():
+            ans = wx.MessageBox("The file content is changed, do you want to save?", "NLP Annotator", wx.YES_NO)
+            if ans == wx.YES:
+                savedlg = wx.FileDialog(self, wildcard="Annotation file(*.ann)|*.ann|Plain text(*.txt)|*.txt|"
+                                            "Annotation list(*.csv)|*.csv", style=wx.FD_SAVE)
+                if savedlg.ShowModal() == wx.ID_OK:
+                    filepath = savedlg.GetPath()
+                    self.editor.saveFile(filepath)
+                else:
+                    return
+        filedlg = wx.FileDialog(self, wildcard="Annotation files(*.ann;*.txt)|*.ann;*.txt")
         if filedlg.ShowModal() == wx.ID_OK:
-            self.filepath = filedlg.GetPath()
-            self.filename.SetLabel('File: ' + self.filepath)
-            content = open(self.filepath).read()
-            self.editor.SetValue(content)
-            self.editor.SetFocus()
+            filepath = filedlg.GetPath()
+            self.SetTitle(filepath + ' - NLP Annotator')
+            self.editor.loadFile(filepath)
+            self.filepath = filepath
+
+    def onSave(self, evt):
+        self.editor.saveFile(self.filepath)
 
     def onExport(self, evt):
-        file = wx.FileDialog(self, wildcard="Plain text(*.txt)|*.txt",
-                             style=wx.FD_SAVE)
+        file = wx.FileDialog(self, wildcard="Annotation file(*.ann)|*.ann|Plain text(*.txt)|*.txt|"
+                                            "Annotation list(*.csv)|*.csv", style=wx.FD_SAVE)
         if file.ShowModal() == wx.ID_OK:
             filepath = file.GetPath()
-            with open(filepath, 'w') as fp:
-                fp.write(self.editor.GetValue())
+            self.editor.saveFile(filepath)
 
     def onClose(self, evt):
-        pass
+        if self.editor.IsModified():
+            ans = wx.MessageBox("The file content is changed, do you want to save?", "NLP Annotator", wx.YES_NO | wx.CANCEL)
+            if ans == wx.YES:
+                self.editor.saveFile(self.filepath)
+            elif ans == wx.CANCEL:
+                return
+        self.Destroy()
 
     def onAdd(self, evt):
         self.grid.AppendRows(updateLabels=False)
@@ -127,8 +150,11 @@ class Frame(wx.Frame):
                 self.grid.update(self.keymap)
                 self.editor.keymap = self.keymap
 
+    def onSetting(self, evt):
+        self.settingdlg.Show()
+
 
 if __name__ == '__main__':
     app = wx.App(False)
-    Frame('Simple Annotator for NLP')
+    Frame('NLP Annotator')
     app.MainLoop()

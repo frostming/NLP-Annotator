@@ -4,7 +4,17 @@ Implemented by wxPython 2.8.12 and Python 2.7.11
 
 Inspired by Jie Yang's project [https://github.com/jiesutd/SUTDAnnotator](https://github.com/jiesutd/SUTDAnnotator)
 
-##Version log
+##Version Log
+
+###Beta2
+- Left single click to select the annotated block.
+- Press `TAB` to jump between annotated blocks.
+- Press `DELETE` to delete the annotation.
+- When an annotated block is selected, press shortcut key to modify in place.
+- Save as ***.ann*** file to keep the annotation information. GUI will do render automatically when one loads an ***.ann*** file.
+- Save as ***Annotation list file(.csv)*** will export the word - label pairs to a CSV file.
+- Implement a setting dialog to customize the colors and font.
+- Improve the GUI look.
 
 ###Beta1
 - Implement main GUI.
