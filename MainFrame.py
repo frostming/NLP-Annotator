@@ -39,6 +39,7 @@ class Frame(wx.Frame):
         open_tool = toolbar.AddSimpleTool(0, wx.Bitmap('icons/load.ico'), "Open a file from local...")
         save_tool = toolbar.AddSimpleTool(1, wx.Bitmap('icons/saveas.ico'), "Save File")
         saveas_tool = toolbar.AddSimpleTool(2, wx.Bitmap('icons/export.ico'), "Save As File...")
+        toolbar.AddSeparator()
         setting_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/setting.ico'), "Preferences...")
         # undo_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/undo.ico'), "Undo")
         # redo_tool = toolbar.AddSimpleTool(4, wx.Bitmap('icons/redo.ico'), "Save As File...")

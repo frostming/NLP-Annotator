@@ -89,6 +89,8 @@ class MyEditor(wx.richtext.RichTextCtrl):
                 if item[0] >= end:
                     self.annotation_list[i] = (item[0] - bias, item[1] - bias)
         elif evt.GetKeyCode() == wx.WXK_TAB:
+            if len(self.annotation_list) == 0:
+                return
             pos = self.GetCaretPosition()
             for item in self.annotation_list:
                 if pos <= item[0]:
@@ -242,6 +244,7 @@ class SettingDlg(wx.Dialog):
         sizer.Add(fgsizer, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 10)
         sizer.Add(buttonsizer, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 10)
         self.SetSizerAndFit(sizer)
+        self.SetIcon(wx.Icon('icons/setting.ico', wx.BITMAP_TYPE_ICO))
 
 
     def onColorChanged(self, evt):
@@ -255,6 +258,7 @@ class SettingDlg(wx.Dialog):
 
     def onFontChanged(self, evt):
         self.textfont = evt.GetFont()
+        self.Refresh()
         evt.Skip()
 
     def onOK(self, evt):
