@@ -1,8 +1,8 @@
 # Simple Annotator for Natural Language Process
 
-Implemented by wxPython 2.8.12 and Python 2.7.11
-
 [![Build Status](https://travis-ci.org/frostming/NLP-Annotator.svg?branch=master)](https://travis-ci.org/frostming/NLP-Annotator)
+
+Implemented by wxPython 2.8.12 and Python 2.7.11
 
 Inspired by Jie Yang's project [https://github.com/jiesutd/SUTDAnnotator](https://github.com/jiesutd/SUTDAnnotator)
 
