@@ -244,7 +244,6 @@ class SettingDlg(wx.Dialog):
         sizer.Add(fgsizer, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 10)
         sizer.Add(buttonsizer, 0, wx.EXPAND | wx.ALIGN_CENTER | wx.ALL, 10)
         self.SetSizerAndFit(sizer)
-        self.SetIcon(wx.Icon('icons/setting.ico', wx.BITMAP_TYPE_ICO))
 
 
     def onColorChanged(self, evt):

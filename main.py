@@ -7,12 +7,13 @@
 # Date:   2016/3/13
 # ====================================
 import wx
-import wx.lib.buttons as buttons
+import icons
 from ui import *
 
 
 def loadIcon(icon, w, h):
-    img = wx.Image(icon, wx.BITMAP_TYPE_ICO)
+    py_icon = eval('icons.' + icon + 'Icon')
+    img = py_icon.GetImage()
     img.Rescale(w, h, wx.IMAGE_QUALITY_HIGH)
     return img.ConvertToBitmap()
 
@@ -26,7 +27,6 @@ class Frame(wx.Frame):
                        'r': 'RACE', 't': 'TITLE', 'u': 'UNIV'}
         self.filepath = ''
         self.initUI()
-        self.settingdlg = SettingDlg(self, 'Settings')
         self.Center()
         self.Show()
 
@@ -36,13 +36,11 @@ class Frame(wx.Frame):
         lbox = wx.BoxSizer(wx.VERTICAL)
         rbox = wx.BoxSizer(wx.VERTICAL)
         toolbar = wx.ToolBar(self, style=wx.NO_BORDER | wx.TB_HORIZONTAL | wx.TB_NODIVIDER)
-        open_tool = toolbar.AddSimpleTool(0, wx.Bitmap('icons/load.ico'), "Open a file from local...")
-        save_tool = toolbar.AddSimpleTool(1, wx.Bitmap('icons/saveas.ico'), "Save File")
-        saveas_tool = toolbar.AddSimpleTool(2, wx.Bitmap('icons/export.ico'), "Save As File...")
+        open_tool = toolbar.AddSimpleTool(0, icons.getLoadIconBitmap(), "Open a file from local...")
+        save_tool = toolbar.AddSimpleTool(1, icons.getSaveAsIconBitmap(), "Save File")
+        saveas_tool = toolbar.AddSimpleTool(2, icons.getExportIconBitmap(), "Save As File...")
         toolbar.AddSeparator()
-        setting_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/setting.ico'), "Preferences...")
-        # undo_tool = toolbar.AddSimpleTool(3, wx.Bitmap('icons/undo.ico'), "Undo")
-        # redo_tool = toolbar.AddSimpleTool(4, wx.Bitmap('icons/redo.ico'), "Save As File...")
+        setting_tool = toolbar.AddSimpleTool(3, icons.getSettingIconBitmap(), "Preferences...")
         self.editor = MyEditor(self, self.keymap)
         toolbar.Bind(wx.EVT_TOOL, self.onOpen, open_tool)
         toolbar.Bind(wx.EVT_TOOL, self.onSave, save_tool)
@@ -59,23 +57,22 @@ class Frame(wx.Frame):
         self.grid = Grid(self, self.keymap)
         rbox.Add(self.grid, 1, flag=wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_HORIZONTAL, border=3)
         bbox = wx.BoxSizer(wx.HORIZONTAL)
-        for label in ['add', 'delete', 'apply', 'saveas', 'load']:
-            bmp = loadIcon('icons/%s.ico' % label, 15, 15)
-            btn = buttons.GenBitmapButton(self, bitmap=bmp)
-            btn.SetToolTipString(label.capitalize())
-            self.Bind(wx.EVT_BUTTON, getattr(self, 'on' + label.capitalize()), btn)
+        for label in ['Add', 'Delete', 'Apply', 'SaveAs', 'Load']:
+            bmp = loadIcon(label, 18, 18)
+            btn = wx.BitmapButton(self, -1, bmp)
+            btn.SetToolTipString(label)
+            self.Bind(wx.EVT_BUTTON, getattr(self, 'on' + label), btn)
             bbox.Add(btn, 0, wx.ALIGN_CENTER | wx.RIGHT, 3)
         rbox.Insert(1, bbox, 0, wx.EXPAND | wx.ALL, 3)
         hbox.Add(rbox, 0, flag=wx.EXPAND | wx.ALL, border=3)
         self.SetSizer(hbox)
-
 
     def onOpen(self, evt):
         if self.editor.IsModified():
             ans = wx.MessageBox("The file content is changed, do you want to save?", "NLP Annotator", wx.YES_NO)
             if ans == wx.YES:
                 savedlg = wx.FileDialog(self, wildcard="Annotation file(*.ann)|*.ann|Plain text(*.txt)|*.txt|"
-                                            "Annotation list(*.csv)|*.csv", style=wx.FD_SAVE)
+                                                       "Annotation list(*.csv)|*.csv", style=wx.FD_SAVE)
                 if savedlg.ShowModal() == wx.ID_OK:
                     filepath = savedlg.GetPath()
                     self.editor.saveFile(filepath)
@@ -100,7 +97,8 @@ class Frame(wx.Frame):
 
     def onClose(self, evt):
         if self.editor.IsModified():
-            ans = wx.MessageBox("The file content is changed, do you want to save?", "NLP Annotator", wx.YES_NO | wx.CANCEL)
+            ans = wx.MessageBox("The file content is changed, do you want to save?", "NLP Annotator",
+                                wx.YES_NO | wx.CANCEL)
             if ans == wx.YES:
                 self.editor.saveFile(self.filepath)
             elif ans == wx.CANCEL:
@@ -131,7 +129,7 @@ class Frame(wx.Frame):
         self.editor.keymap = key_dict
         wx.MessageBox("The changes are applied.", "Information")
 
-    def onSaveas(self, evt):
+    def onSaveAs(self, evt):
         import json
         file = wx.FileDialog(self, defaultFile="keymap.conf", wildcard="Configure file(*.conf)|*.conf",
                              style=wx.FD_SAVE)
@@ -152,10 +150,12 @@ class Frame(wx.Frame):
                 self.editor.keymap = self.keymap
 
     def onSetting(self, evt):
-        self.settingdlg.Show()
+        settingdlg = SettingDlg(self, 'Settings')
+        settingdlg.SetIcon(icons.SettingIcon.GetIcon())
+        settingdlg.Show()
 
 
 if __name__ == '__main__':
     app = wx.App(False)
-    Frame('NLP Annotator')
+    fr = Frame('NLP Annotator')
     app.MainLoop()

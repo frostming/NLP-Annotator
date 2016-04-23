@@ -1,0 +1,19 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
+  # maintainers to fix their pypy-dev package.
+# command to install dependencies
+addons:
+  apt:
+    packages:
+      # for wxPython:
+      - python-wxgtk2.8
+      - python-wxtools
+      - wx2.8-doc
+      - wx2.8-examples
+      - wx2.8-headers
+      - wx2.8-i18n
+# command to run tests
+script: python test/testui.py
